@@ -1,0 +1,90 @@
+
+services:
+  identity-db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: cliently_identity
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - identity_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  business-info-db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: cliently_business_info
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - business_info_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: always
+    ports:
+      - "5672:5672" 
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 30s
+      timeout: 30s
+      retries: 10
+
+
+  identity-service:
+    image: raul36/cliently-identity-service:latest
+    ports:
+      - "8080:8080"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=identity-db;Port=5432;Database=cliently_identity;Username=postgres;Password=postgres"
+      RabbitMQ__HostName: "rabbitmq"
+      RabbitMQ__UserName: "admin"
+      RabbitMQ__Password: "admin"
+    depends_on:
+      identity-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+
+  business-info-service:
+    image: raul36/cliently-business-info-service:latest
+    ports:
+      - "8081:8080"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=business-info-db;Port=5432;Database=cliently_business_info;Username=postgres;Password=postgres"
+      RabbitMQ__HostName: "rabbitmq"
+      RabbitMQ__UserName: "admin"
+      RabbitMQ__Password: "admin"
+    depends_on:
+      business-info-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  identity_postgres_data:
+  business_info_postgres_data:
+  rabbitmq_data:
