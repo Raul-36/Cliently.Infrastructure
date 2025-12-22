@@ -43,8 +43,8 @@ jobs:
             
             cd ~/infrastructure
             
-            docker compose pull
+            docker-compose pull
             
-            docker compose up -d
+            docker-compose up -d
             
             docker image prune -f --filter "dangling=true"
