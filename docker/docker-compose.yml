@@ -16,7 +16,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    restart: always
 
 
   business-info-db:
@@ -52,11 +51,11 @@ services:
       interval: 30s
       timeout: 30s
       retries: 10
-    restart: always
 
 
   identity-service:
     image: raul36/cliently-identity-service:latest
+    restart: always
     ports:
       - "8081:8080"
     environment:
@@ -69,11 +68,11 @@ services:
         condition: service_healthy 
       rabbitmq:
         condition: service_healthy
-    restart: always
 
 
   business-info-service:
     image: raul36/cliently-business-info-service:latest
+    restart: always
     ports:
       - "8082:8080"
     environment:
@@ -86,16 +85,15 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    restart: always
   
   gateway:
     image: raul36/cliently-gateway-service:latest
+    restart: always
     ports:
       - "8080:8080"
     depends_on:
       - identity-service
       - business-info-service
-    restart: always
 
 volumes:
   identity_postgres_data:
