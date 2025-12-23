@@ -16,6 +16,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: always
 
 
   business-info-db:
@@ -51,6 +52,7 @@ services:
       interval: 30s
       timeout: 30s
       retries: 10
+    restart: always
 
 
   identity-service:
@@ -67,6 +69,7 @@ services:
         condition: service_healthy 
       rabbitmq:
         condition: service_healthy
+    restart: always
 
 
   business-info-service:
@@ -83,6 +86,7 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    restart: always
   
   gateway:
     image: raul36/cliently-gateway-service:latest
@@ -91,6 +95,7 @@ services:
     depends_on:
       - identity-service
       - business-info-service
+    restart: always
 
 volumes:
   identity_postgres_data:
